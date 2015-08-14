@@ -48,46 +48,54 @@ init -1 python:
             self.state = ("default", None)
             self.maxturns = 5
             self.currentturn = 1
-            self.newturn = True
+            self.combatlog = None
             self.actionlist = allylist + enemylist
             self.actionlist.sort(key=lambda unit: unit.speed, reverse = True)
+            self.run_enemy_ai()
 
         def __str__():
             "I dunno lol"
         def resolve_turn(self):
-            # work through list of actions
 
-            for unit in self.actionlist:
-                if unit.action is "defend":
-                    store.battleresult.append(unit.name + " defends.")
-                elif unit.action[0] is "attack":
-                    damage = int(unit.attack * unit.currenttroop / 50)
-                    store.battleresult.append(unit.name + " deals " + str(damage) + " damage to " + unit.action[1].name + "!")
-                    unit.action[1].currenttroop = unit.action[1].currenttroop - damage
-                    if unit.action[1].currenttroop < 1:
-                        store.battleresult.append(unit.action[1].name + " is dead.")
+            # check ending conditions
+            if all(ally.active == False for ally in self.allylist):
+                self.state = ("defeat", None)
+            elif all(enemy.active == False for enemy in self.enemylist):
+                self.state = ("victory", None)
+            elif self.actionlist[0].action == None:
+                ## should be done going through actions
+                self.state = ("default", None)
+                ## increment new turn
+                self.currentturn += 1
+                ##run enemy AI for living enemies
+                self.run_enemy_ai()  
+            else:
+            # it hasn't ended, so let's process one action
+                unit = self.actionlist[0]
+                if unit.active:    
+                    if unit.action is "defend":
+                        self.combatlog = unit.name + " defends."
+                    elif unit.action[0] is "attack":
+                        if unit.action[1].active:
+                            damage = int(unit.attack * unit.currenttroop / 50)                   
+                            self.combatlog = unit.name + " deals " + str(damage) + " damage to " + unit.action[1].name + "!"
+                            unit.action[1].currenttroop = unit.action[1].currenttroop - damage
+                            if unit.action[1].currenttroop < 1:
+                                unit.action[1].active = False
+                unit.action = None
+                self.actionlist = self.actionlist[1:] + self.actionlist[0:1]
+                self.state = ("resolvingturn", None)
 
-            # for unit in self.actionlist:
-            #     if unit.active:    
-            #         if unit.action is "defend":
-            #             renpy.say(who = None, what = unit.name + " defends.")
-            #         elif unit.action[0] is "attack":
-            #             if unit.action[1].active:
-            #                 damage = int(unit.attack * unit.currenttroop / 50)                   
-            #                 renpy.say(who = None, what = unit.name + " deals " + str(damage) + " damage to " + unit.action[1].name + "!")
-            #                 unit.action[1].currenttroop = unit.action[1].currenttroop - damage
-            #                 if unit.action[1].currenttroop < 1:
-            #                     renpy.say(who = None, what = unit.action[1].name + " is dead.")
-            #                     unit.action[1].active = False
-            #     unit.action = None
-
-
-            # clean all actions, increment new turn
-            for val in self.actionlist:
-                val.action = None
-                if val.currenttroop < 1:
-                    val.active = False
-            self.currentturn += 1
-            self.newturn = True
+            ## clean all actions and check for dead
+            # for val in self.actionlist:
+            #     val.action = None
+            #     if val.currenttroop < 1:
+            #         val.active = False
             renpy.restart_interaction()
+            return
+
+        def run_enemy_ai(self):
+            for enemy in self.enemylist:
+                    if enemy.active:
+                        enemy.action = "defend"  
             return

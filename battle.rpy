@@ -2,37 +2,18 @@
 
 screen battle(battle, **kwargs):  
 ###inputs, BattleInstance object; outputs, victory or defeat
-    # $ _rollback = False
+    $ _rollback = False
     # key "rollback" action [[]]     #uncomment once complete, keep as it is for testing purposes
     # key "rollforward" action [[]]    
     # textbutton "Exit Battle" xalign 1.0 action Return()
-    if battle.newturn:
-        ##run enemy AI for living enemies
-        for enemy in battle.enemylist:
-            if enemy.active:
-                $enemy.action = "defend"
-        $battle.newturn = False
-        $battle.actionlist.sort(key=lambda unit: unit.speed, reverse = True)
 
     ## Draw the actual battle screen
     use _battle_base_layer(battle)
-    use _battle_additional_layers(battle)
+    use _battle_state_execution(battle)
 
     ## Ready to Fight?
-    if all(fighter.action is not None for fighter in battle.allylist):
+    if all(fighter.action for fighter in battle.actionlist):
         textbutton "Fight!" align (0.5, 0.5) action Function(battle.resolve_turn) at glow
-
-    # Combatlog
-    if battleresult:
-        window id "combatlog":
-            # text battleresult.pop(0)
-            text battleresult[0]
-        imagebutton idle "#0000" hover "#0000" action Function(deletebattleresult)
-
-    ## Victory
-    if all(enemy.active == False for enemy in battle.enemylist) and not battleresult:
-        imagebutton idle "#0000" hover "#0000" action Return
-        textbutton "Victory!" action Return at truecenter
 
 
 screen _battle_base_layer(battle):
@@ -65,7 +46,7 @@ screen _battle_base_layer(battle):
                     add Solid("#030")
                     hbox: #actionlist, implemented
                         for units in battle.actionlist:
-                            if units.action is not None:
+                            if units.action:
                                 add units.icon
                                 null width 1
                 text "Info%" xsize 65 #enemy info box, NYI
@@ -130,7 +111,7 @@ screen _battle_enemy_field(battle):
                     yoffset int((y * 82) - 80)
                     drag_name (x,y)
                     add Solid("#111", xysize = (80,80))
-        if battle.state[1] is not "attack":
+        if battle.state[1] != "attack":
             for val in battle.enemylist:
                 if val.active: #if enemy's alive
                     drag:
@@ -143,9 +124,21 @@ screen _battle_enemy_field(battle):
                         id val.name
                         add val.icon
 
-screen _battle_additional_layers(battle):
+screen _battle_state_execution(battle):
     #no additional layers is ("default", None)
-    if battle.state[0] is "initialclick":
+    if battle.state[0] == "resolvingturn":
+        ##Combatlog
+        window id "combatlog":
+            text battle.combatlog
+        imagebutton idle "#0000" hover "#0000" action Function(battle.resolve_turn)
+
+    elif battle.state[0] == "victory":
+        ## Victory
+        imagebutton idle "#0000" hover "#0000" action Return
+        textbutton "Victory!" action Return at truecenter
+
+
+    elif battle.state[0] == "initialclick":
         use _battle_draw_one_ally(battle)
         $clickedfighter = battle.state[1]
         frame:   #the action menu
@@ -163,7 +156,7 @@ screen _battle_additional_layers(battle):
                                             SetField(battle, "state", ("default", None))]  
                 textbutton "GENUFLECT" action Jump("genuflect")
 
-    elif battle.state[0] is "attack":
+    elif battle.state[0] == "attack":
         $clickedfighter = battle.state[1] #just so it's more readable
         use _battle_draw_one_ally(battle)
         use _battle_draw_all_enemies(battle)
