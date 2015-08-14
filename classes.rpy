@@ -14,28 +14,25 @@ init -1 python:
             self.action = action
             self.name = name
             self.active = True
-            if flag is "ally":
-                self.icon = LiveComposite(
-                    (80,80), 
-                    (0,0), DynamicDisplayable(self.unit_action_icon), 
-                    (0,0), DynamicDisplayable(self.unit_health_bar),
-                    (0,10), Text(text = str(name)), 
-                    (40,60), DynamicDisplayable(self.unit_troop_amount))
-            elif flag is "enemy":
-                self.icon = LiveComposite(
-                    (80,80), 
-                    (0,0), Solid("#300"),
-                    (0,0), DynamicDisplayable(self.unit_health_bar), 
-                    (0,10), Text(text = str(name)), 
-                    (40,60), DynamicDisplayable(self.unit_troop_amount))
+            if flag == "ally":
+                self.icon = Fixed(
+                    DynamicDisplayable(self.unit_action_icon), 
+                    DynamicDisplayable(self.unit_health_bar),
+                    Text(text = str(name), ypos = 10), 
+                    At(Text(text = str(self.currenttroop)), right),
+                    xysize = (80,80))
+            elif flag == "enemy":
+                self.icon = Fixed(
+                    Solid("#300"), 
+                    DynamicDisplayable(self.unit_health_bar),
+                    Text(text = str(name), ypos = 10), 
+                    At(Text(text = str(self.currenttroop)), right),
+                    xysize = (80,80))
         def unit_action_icon(self, st, at):
             if self.action is None:
                 return Solid("#030"), None
             else:
                 return Solid("#060"), None
-
-        def unit_troop_amount(self, st, at):
-            return At(Text(text = str(self.currenttroop)), right), None
 
         def unit_health_bar(self, st, at):
             return Bar(style = style.health_bar, 
@@ -53,13 +50,11 @@ init -1 python:
             self.currentturn = 1
             self.newturn = True
             self.actionlist = allylist + enemylist
+            self.actionlist.sort(key=lambda unit: unit.speed, reverse = True)
 
         def __str__():
             "I dunno lol"
         def resolve_turn(self):
-            # factor who goes when
-            # actionlist.sort(key=lambda unit: unit.speed, reverse = True)
-
             # work through list of actions
 
             for unit in self.actionlist:
@@ -73,11 +68,11 @@ init -1 python:
                         store.battleresult.append(unit.action[1].name + " is dead.")
 
             # for unit in self.actionlist:
-            #     if unit.active is True:    
+            #     if unit.active:    
             #         if unit.action is "defend":
             #             renpy.say(who = None, what = unit.name + " defends.")
             #         elif unit.action[0] is "attack":
-            #             if unit.action[1].active is True:
+            #             if unit.action[1].active:
             #                 damage = int(unit.attack * unit.currenttroop / 50)                   
             #                 renpy.say(who = None, what = unit.name + " deals " + str(damage) + " damage to " + unit.action[1].name + "!")
             #                 unit.action[1].currenttroop = unit.action[1].currenttroop - damage

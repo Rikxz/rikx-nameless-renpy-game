@@ -6,10 +6,10 @@ screen battle(battle, **kwargs):
     # key "rollback" action [[]]     #uncomment once complete, keep as it is for testing purposes
     # key "rollforward" action [[]]    
     # textbutton "Exit Battle" xalign 1.0 action Return()
-    if battle.newturn is True:
+    if battle.newturn:
         ##run enemy AI for living enemies
         for enemy in battle.enemylist:
-            if enemy.active is True:
+            if enemy.active:
                 $enemy.action = "defend"
         $battle.newturn = False
         $battle.actionlist.sort(key=lambda unit: unit.speed, reverse = True)
@@ -30,7 +30,7 @@ screen battle(battle, **kwargs):
         imagebutton idle "#0000" hover "#0000" action Function(deletebattleresult)
 
     ## Victory
-    if all(enemy.active is False for enemy in battle.enemylist) and not battleresult:
+    if all(enemy.active == False for enemy in battle.enemylist) and not battleresult:
         imagebutton idle "#0000" hover "#0000" action Return
         textbutton "Victory!" action Return at truecenter
 
@@ -106,7 +106,7 @@ screen _battle_ally_field(battle):
                     drag_name (x, y)
                     add Solid("#111", xysize = (80,80))
         for val in battle.allylist:
-            if val is not battle.state[1] and val.active is True:
+            if val is not battle.state[1] and val.active:
                 drag:
                     droppable False
                     pos (0.9, 0.5)
@@ -132,7 +132,7 @@ screen _battle_enemy_field(battle):
                     add Solid("#111", xysize = (80,80))
         if battle.state[1] is not "attack":
             for val in battle.enemylist:
-                if val.active is True: #if enemy's alive
+                if val.active: #if enemy's alive
                     drag:
                         draggable False
                         droppable False
@@ -185,7 +185,7 @@ screen _battle_draw_one_ally(battle):
 
 screen _battle_draw_all_enemies(battle, clickedaction = "attack"):
     for val in battle.enemylist:
-        if val.active is True:
+        if val.active:
             drag:
                 draggable False
                 droppable False
