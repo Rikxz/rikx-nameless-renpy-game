@@ -137,6 +137,10 @@ screen _battle_state_execution(battle):
         imagebutton idle "#0000" hover "#0000" action Return
         textbutton "Victory!" action Return at truecenter
 
+    elif battle.state[0] == "defeat":
+        ## Defeat
+        imagebutton idle "#0000" hover "#0000" action Return
+        textbutton "Defeat!" action Return at truecenter
 
     elif battle.state[0] == "initialclick":
         use _battle_draw_one_ally(battle)
@@ -148,7 +152,7 @@ screen _battle_state_execution(battle):
             yoffset int((clickedfighter.pos[1] * 82) - 47)
             vbox:
                 #might use imagebuttons instead here.  still, concept is the same
-                #TODO: different buttons based on the fighter, which can be determined from the selecteddrag
+                #TODO: different buttons based on the fighter
                 textbutton "Attack!" action [With(dissolve), 
                                             SetField(battle, "state", ("attack", clickedfighter))]
                 textbutton "Defend!" action [SetField(clickedfighter, "action", "defend"), 
@@ -157,7 +161,6 @@ screen _battle_state_execution(battle):
                 textbutton "GENUFLECT" action Jump("genuflect")
 
     elif battle.state[0] == "attack":
-        $clickedfighter = battle.state[1] #just so it's more readable
         use _battle_draw_one_ally(battle)
         use _battle_draw_all_enemies(battle)
 

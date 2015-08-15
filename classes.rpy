@@ -67,7 +67,7 @@ init -1 python:
                 self.state = ("default", None)
                 ## increment new turn
                 self.currentturn += 1
-                ##run enemy AI for living enemies
+                ## run enemy AI for living enemies
                 self.run_enemy_ai()  
             else:
             # it hasn't ended, so let's process one action

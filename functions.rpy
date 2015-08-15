@@ -28,7 +28,3 @@ init python:
         renpy.transition(dissolve)
         renpy.restart_interaction()
         return
-
-    def deletebattleresult():
-        del store.battleresult[0]
-        return
